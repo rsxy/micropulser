@@ -3,7 +3,7 @@ Microsecond pulse generator for Arduino.
 
 Serial interface for generating short (µs) pulses on digital output pins.
 Can generate single pulses and pulse trains with rather strict timing, periodic pulses with less strict timing.
-Test pulse pattern with 1, 2, 5, 10 µs pulse width.
+Test pulse pattern with 1, 2, 5, 10 µs pulse width, peridically on pin D2, D3, D4, D5.
 
 Serial commands (parameters separated by single space, termination character is "\n"):
 
@@ -19,7 +19,7 @@ periodic <int pinID> <int pulselen> <int pulsegap>
 * generate single pulses in infinite loop; pause timing is not strict, arduino runtime loop overhead is added to pulsegap.
 
 test
-* send periodic pattern of test pulses, i.e. 1, 2, 5, 10 µs pulses with 10 µs gap, then 1 ms wait time (+ overhead) until next iterationp
+* send periodic pattern of test pulses, i.e. 1, 2, 5, 10 µs pulses with 10 µs gap, on pin D2, D3, D4, D5, then 1 ms wait time (+ overhead) until next iteration
 
 stop
 * stop pulse generation, go to idle mode, waiting for new command
