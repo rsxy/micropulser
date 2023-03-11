@@ -9,20 +9,24 @@ Serial commands (parameters separated by single space, termination character is 
 
 `pulse <int pinID>  <int pulseN> <int pulselen> <int pulsegap>`
 * generate single or multiple pulses, then go to idle state, wait for new command.
-* <int pinID>: digital output pin
-* <int pulseN>: Number operiodic <int pin> <int length> <int gap>
-f pulses to be generated
-* <int pulselen>: Length of pulse(s) in microseconds (µs)
-* <int pulsegap>: Gap between pulses, in microseconds (µs)
+* `<int pinID>`: digital output pin
+* `<int pulseN>`: Number of periodic pulses to be generated
+* `<int pulselen>`: Length of pulse(s) in microseconds (µs)
+* `<int pulsegap>`: Gap between pulses, in microseconds (µs)
 
 `periodic <int pinID> <int pulselen> <int pulsegap>`
-* generate single pulses in infinite loop; pause timing is not strict, arduino runtime loop overhead is added to pulsegap.
+* generate single pulses in infinite loop; 
+* pause timing is not strict, arduino runtime loop overhead is added to pulsegap.
 
 `test`
-* send periodic pattern of test pulses, i.e. 1, 2, 5, 10 µs pulses with 10 µs gap, on pin D2, D3, D4, D5, then 1 ms wait time (+ overhead) until next iteration
+* send periodic pattern of test pulses, i.e. 1, 2, 5, 10 µs pulses with 10 µs gap, 
+* using pin D2, D3, D4, D5, 
+* then 1 ms wait time (+ overhead) until next iteration
 
 `stop`
 * stop pulse generation, go to idle mode, waiting for new command
 
 
+## Contributing
 
+This is my first public project for quite some time, please feel free to contribute or drop me a note! :-)
