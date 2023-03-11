@@ -3,7 +3,7 @@ Microsecond pulse generator for Arduino.
 
 Serial interface for generating short (µs) pulses on digital output pins.
 Can generate single pulses and pulse trains with rather strict timing, periodic pulses with less strict timing.
-Test pulse pattern with 1, 2, 5, 10 µs pulse width, peridically on pin D2, D3, D4, D5.
+Test pulse pattern with 1, 2, 5, 10 µs pulse width, periodically on pin D2, D3, D4, D5.
 
 ## Serial commands 
 Parameters are separated by single space, termination character is "\n", 115200 baud
@@ -33,3 +33,8 @@ Syntax:
 ## Contributing
 
 This is my first public project for quite some time, please feel free to contribute or drop me a note! :-)
+
+## To do
+* more testing, oscilloscope pictures
+* better documentation
+* code refining
