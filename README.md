@@ -7,7 +7,7 @@ Test pulse pattern with 1, 2, 5, 10 µs pulse width, peridically on pin D2, D3, 
 
 Serial commands (parameters separated by single space, termination character is "\n", 115200 baud):
 
-pulse <int pinID>  <int pulseN> <int pulselen> <int pulsegap>
+`pulse <int pinID>  <int pulseN> <int pulselen> <int pulsegap>`
 * generate single or multiple pulses, then go to idle state, wait for new command.
 * <int pinID>: digital output pin
 * <int pulseN>: Number operiodic <int pin> <int length> <int gap>
@@ -15,13 +15,13 @@ f pulses to be generated
 * <int pulselen>: Length of pulse(s) in microseconds (µs)
 * <int pulsegap>: Gap between pulses, in microseconds (µs)
 
-periodic <int pinID> <int pulselen> <int pulsegap>
+`periodic <int pinID> <int pulselen> <int pulsegap>`
 * generate single pulses in infinite loop; pause timing is not strict, arduino runtime loop overhead is added to pulsegap.
 
-test
+`test`
 * send periodic pattern of test pulses, i.e. 1, 2, 5, 10 µs pulses with 10 µs gap, on pin D2, D3, D4, D5, then 1 ms wait time (+ overhead) until next iteration
 
-stop
+`stop`
 * stop pulse generation, go to idle mode, waiting for new command
 
 
