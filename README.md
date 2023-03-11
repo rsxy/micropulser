@@ -5,10 +5,10 @@ Serial interface for generating short (µs) pulses on digital output pins.
 Can generate single pulses and pulse trains with rather strict timing, periodic pulses with less strict timing.
 Test pulse pattern with 1, 2, 5, 10 µs pulse width, peridically on pin D2, D3, D4, D5.
 
-Serial commands (parameters separated by single space, termination character is "\n"):
+Serial commands (parameters separated by single space, termination character is "\n", 115200 baud):
 
 pulse <int pinID>  <int pulseN> <int pulselen> <int pulsegap>
-* generate single or multiple pulses, then go to idle state, waiting for new command.
+* generate single or multiple pulses, then go to idle state, wait for new command.
 * <int pinID>: digital output pin
 * <int pulseN>: Number operiodic <int pin> <int length> <int gap>
 f pulses to be generated
