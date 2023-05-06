@@ -27,6 +27,13 @@ const int testpulses [] = {1, 2, 5, 10};   // µs for testpulses
 String inputString = "";  // a string to hold incoming data
 String runmode = "";      // a string set mode of operation
 
+char helpstr[] = "Arduino micropulser: Commands with integer values only, duration in µs:\n" 
+"    pulse <int pinID> <int pulseN> <int pulselen> <int pulsegap>\n"
+"    periodic <int pinID> <int pulselen> <int pulsegap>\n"
+"    test\n"
+"    stop\n";
+
+
 //char inputString[40];
 bool stringComplete = false;  // whether the string is complete
 char mesg[256];  // for using sprintf:  C string / char array
@@ -36,6 +43,10 @@ int pulselen = 0;   // pulse length in µs
 int pulseN = 0;     // number of pulses
 int pulsegap = 0;   // gap between pulses, in µs
 
+int pinA = 2;
+int pinB = 3;
+int pinC = 4;
+int pinD = 5;
 
 void setup() {
     // define pins, set low
@@ -164,7 +175,7 @@ void serialEvent() {
           for(int i=0; i<3; i++) { //read four parameters
             preceding_space = inputString.indexOf(' ',preceding_space+1);
             if(preceding_space<0){
-              Serial.println(F("Error: Command is 'periodic <int pin> <int length> <int gap>'"));
+              Serial.println(F("Error: Command is 'periodic <int pinID> <int pulselen> <int pulsegap>'"));
               break;
             }
             para[i] = inputString.substring(preceding_space+1).toInt();
@@ -181,13 +192,18 @@ void serialEvent() {
           Serial.println("OK - Test mode, sending pulses of varying length!");     
           runmode = "test";
       }
+      else if (inputString.startsWith("help")){
+            
+          Serial.println(helpstr);     
+          runmode = "";  // empty string, so no specific mode will be entered
+      }
       else if (inputString.startsWith("stop")){  
           Serial.println("OK - Stop mode, waiting for new command..");     
           runmode = "";  // empty string, so no specific mode will be entered
       }
-      
+       
       else{
-        Serial.println("Warning: Command could not be parsed!");
+        Serial.println("Warning: Command could not be parsed! Try 'test' for 1, 2, 5, 10 µs test pulse");
         // don't change run mode, just go on with whatever is was
         // runmode = "";
       }
