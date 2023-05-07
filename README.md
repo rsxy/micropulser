@@ -43,12 +43,16 @@ Tested so far with an Arduino nano clone and pin 2 - 5, serial connection to Ras
 As to now, the program consits of simple loops and instructions to set the indiviual pins low or high.
 At low pulse durations, the microcontroller comes to its limits. In addition, the program structure (loop, serial interrupt) will add additonal overlay.
 
-My first tests with the Arduino nano clone show that the minium pulse length is about 2.16 µs (for both 0 and 1 µs set values), the minium gap between pulses 2.8 µs (for 0 and 1 µs set value). 
+My first tests with the Arduino nano clone show that the minium pulse length is about 2.16 µs (for both 0 and 1 µs set values), the minium gap between pulses 2.8 µs (for 0 and 1 µs set value), for pulse trains (multiple pulses using the `pulse` command).
 
 From what I have seen so far, the timing is quite reproducible, the absolute pulse length and gap differs from the set value.
 Depending on the application, this might be tolarable and can be corrected to some extend by the triggering commands.
 
 Below are some screenshots and graphs, as tested with an Agilent DSO1072B oscilloscope.
+
+![test___0](https://user-images.githubusercontent.com/5566528/236679824-01d12e9e-3edd-4111-a472-7d71afaea327.png)
+Test pulses with 1, 2, 5, 10 µs nominal width, resulting in 0.8, 1.8, 4.8 and 9.8 µs actual pulse width.
+
 
 
 ## Contributing
