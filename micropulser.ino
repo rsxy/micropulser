@@ -240,7 +240,7 @@ void setPin(int pinID, int pinState) {
 void parseCommand(String command) {
   if (command.startsWith("pulse ")) {
     parsePulseCommand(command);
-  if (command.startsWith("single ")) {
+  } else if (command.startsWith("single ")) {
     parseSingleCommand(command);
   } else if (command.startsWith("periodic ")) {
     parsePeriodicCommand(command);
@@ -249,15 +249,16 @@ void parseCommand(String command) {
   } else if (command.startsWith("setpin ")) {
     parseSetPinCommand(command);
   } else if (command.startsWith("test2")) {
-    Serial.println("OK - Test mode 2, sending pulses of varying length!");
+    Serial.println("OK - Test mode 2, sending pulses of varying length (1, 2, 4 µs every ~100 ms)!");
     runmode = "test2";
   } else if (command.startsWith("test")) {
-    Serial.println("OK - Test mode, sending pulses of varying length!");
+    Serial.println("OK - Test mode, sending pulses of varying length (1, 2, 5, 10 µs every ~1 ms)!");
     runmode = "test";
   } else if (command.startsWith("help")) {
     Serial.println(helpstr);
     runmode = "";
-  } else if (command.equalsIgnoreCase("version") || command.equalsIgnoreCase("*IDN?")) {
+  } else if (command.startsWith("version") || command.startsWith("*IDN?")) {
+    //else if (command.equalsIgnoreCase("version") || command.equalsIgnoreCase("*IDN?")) {
     Serial.println(softwareVersion);
   } else if (command.startsWith("stop")) {
     Serial.println("OK - Stop mode, waiting for new command..");
@@ -284,7 +285,7 @@ void parseSingleCommand(String command) {
   long params[4];
   if(parseParameters(command, "single", params, 2)){
     pinID = params[0];
-    pulselen = params[2];
+    pulselen = params[1];
     sprintf(mesg, "OK - Single Pulse mode: pinID: %d, pulse length: %d µs", pinID, pulselen);
     Serial.println(mesg);
     runmode = "single";
