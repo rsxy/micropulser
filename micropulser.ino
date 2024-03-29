@@ -48,7 +48,13 @@ const int pinA = 2;
 const int pinB = 3;
 const int pinC = 4;
 const int pinD = 5;
-const int pinE = 6;  // New pin for double pulse feature
+const int pinE = 6;  // New pins for double pulse or setpin feature
+const int pinF = 7;  
+const int pinG = 8;  
+const int pinH = 9;  
+const int pinI = 10;  
+
+
 
 // Global variables
 String inputString = "";         // a String to hold incoming data
@@ -61,11 +67,13 @@ int pinID2 = 0;                  // pin ID for second double pulse
 int pulselen2 = 0;               // second pulse length in microseconds
 int pulseN = 1;                  // number of pulses
 int pulsegap = 0;                // gap between pulses in microseconds
+int pinstate = 0;                // 0 for LOW, 1 for HIGH
 
 char helpstr[] = "Arduino micropulser: Commands with integer values only, duration in µs:\n" 
 "    pulse <int pinID> <int pulseN> <int pulselen> <int pulsegap>\n"
 "    periodic <int pinID> <int pulselen> <int pulsegap>\n"
 "    doublepulse <int pinID> <int pulselen> <int pulsegap> <int pinID2> <int pulselen2>\n"
+"    setpin <int pinID> <int pinstate>\n"
 "    test\n"
 "    stop\n";
 
@@ -96,6 +104,14 @@ void setup() {
   digitalWrite(pinD, LOW);
   pinMode(pinE, OUTPUT);
   digitalWrite(pinE, LOW);
+  pinMode(pinF, OUTPUT);
+  digitalWrite(pinF, LOW);
+  pinMode(pinG, OUTPUT);
+  digitalWrite(pinG, LOW);
+  pinMode(pinH, OUTPUT);
+  digitalWrite(pinH, LOW);
+  pinMode(pinI, OUTPUT);
+  digitalWrite(pinI, LOW);
 
   Serial.begin(115200);
   inputString.reserve(64);
@@ -192,6 +208,22 @@ void generateTestPulses2() {
   delay(100); // 100 ms delay
 }
 
+/**
+ * @brief Sets the specified pin to the given state (LOW or HIGH).
+ *
+ * @param pinID The pin number to be set.
+ * @param pinState The state to set the pin (0 for LOW, 1 for HIGH).
+ */
+void setPin(int pinID, int pinState) {
+  if (pinState == 0) {
+    digitalWrite(pinID, LOW);
+  } else if (pinState == 1) {
+    digitalWrite(pinID, HIGH);
+  } else {
+    Serial.println("Error: pinState must be 0 (LOW) or 1 (HIGH).");
+  }
+}
+
 
 void parseCommand(String command) {
   if (command.startsWith("pulse ")) {
@@ -200,6 +232,8 @@ void parseCommand(String command) {
     parsePeriodicCommand(command);
   } else if (command.startsWith("doublepulse")) {
     parseDoublePulseCommand(command);
+  } else if (command.startsWith("setpin ")) {
+    parseSetPinCommand(command);
   } else if (command.startsWith("test2")) {
     Serial.println("OK - Test mode 2, sending pulses of varying length!");
     runmode = "test2";
@@ -255,6 +289,23 @@ void parseDoublePulseCommand(String command) {
     runmode = "doublepulse";
   }
 }
+
+/**
+ * @brief Parses the set pin command and calls the setPin function with the parameters.
+ *
+ * @param command The command string containing the parameters for setting a pin.
+ */
+void parseSetPinCommand(String command) {
+  long params[2]; // Expecting two parameters: pinID and pinState
+  if (parseParameters(command, "setpin", params, 2)) {
+    int pinID = params[0];
+    int pinState = params[1];
+    setPin(pinID, pinState);
+    sprintf(mesg, "OK - Pin %d set to %d", pinID, pinState);
+    Serial.println(mesg);
+  }
+}
+
 
 bool parseParameters(String command, const char* mode, long* params, int numParams) {
   int spaceIndex = -1;
