@@ -12,7 +12,7 @@
  * 
  * @note Code refactored using ChatGPT 4.0
  * 
- * @version 0.2
+ * @version 0.2dev
  * 
  * Project URL: https://github.com/rsxy/micropulser
  *
@@ -41,7 +41,7 @@
 // Constants
 
 // Global variable for identification string
-const char* softwareVersion = "micropulser v0.2";
+const char* softwareVersion = "micropulser v0.2dev";
 const int delta_t = 0;  // Calibration delay in microseconds
 const int testpulses[] = {1, 2, 5, 10};  // Test pulse durations in microseconds
 const int testpulses2[] = {1, 2, 4};
