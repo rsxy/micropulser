@@ -9,13 +9,14 @@ enabling various modes such as single pulses, periodic pulses, test pulses, and 
 The code can generate single pulses and pulse trains with rather strict timing, periodic pulses with less strict timing (see below).
 Test pulse pattern with 1, 2, 5, 10 µs (or alternatively 1, 2, 4 µs) pulse width, periodically on pin D2, D3, D4, D5.
 
-Also, individual pins can be just set HIGH to LOW - boring!
+Also, individual pins can be just set HIGH to LOW  - boring!
 
 By default, pins #2 - #10 are set as digital outputs and can be addressed by commands.
 
 
 ## Serial command interface
-Parameters are separated by single space, termination character is "\n", 115200 baud
+Parameters are separated by single space, termination character is "\n", 115200 baud.
+There will be some inherent communication latency until the command gets actually executed.
 
 ## Syntax
 
@@ -50,7 +51,7 @@ Example: Using pin4, to start periodic pulses of 10 microseconds with a gap of 5
 ### doublepulse
 `doublepulse <pinID> <pulselen> <gap> <pinID2> <pulselen2>`
 
-Generates a double pulse sequence using two different pins.
+Generates a double pulse sequence using two different pins. Can be used to trigger some event and a camera (or vice versa) with a defined delay.
 
 - `pinID`: First pin number for pulse output.
 - `pulselen`: Length of the pulse on the first pin in microseconds.
@@ -63,9 +64,9 @@ Example: To generate a double pulse sequence on pins 2 and 5 with respective pul
   `doublepulse 2 10 100 5 20`
 
 ### test
-`test`: Generates a sequence of test pulses of varying lengths (1, 2, 5, 10 µs) on all configured pins.
+`test` : Generates a sequence of test pulses of varying lengths (1, 2, 5, 10 µs) on all configured pins.
 
-`test2`: Generates a sequence of test pulses of varying lengths (1, 2, 4 µs) on all configured pins.
+`test2` : Generates a sequence of test pulses of varying lengths (1, 2, 4 µs) on all configured pins.
 
 ### stop
 `stop`
@@ -73,13 +74,9 @@ Example: To generate a double pulse sequence on pins 2 and 5 with respective pul
 Stops any ongoing pulse generation and waits for a new command.
 
 ### setpin
-`setpin <pinID> <pinsate>`
+`setpin <pinID> <pinsate>` : Set pin to LOW (pinstate = 0) or HIGH (pinstate = 1)
 
-Set pin to LOW (pinstate = 0) or HIGH (pinstate = 1)
-
-Example: Set pin D9 to HIGH:
-
-  `setpin 9 1`
+Example: Set pin D9 to HIGH: `setpin 9 1`
 
 
 
