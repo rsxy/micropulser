@@ -4,7 +4,7 @@ Microsecond pulse generator for Arduino.
 
 This project involves an Arduino program capable of generating microsecond pulses on digital output pins. 
 The program allows users to control the pulse generation through serial commands, 
-enabling various modes such as single pulses, periodic pulses, test pulses, and double pulses on different pins.
+enabling various modes such as single or multiple pulses, periodic pulses, test pulses, and double pulses on different pins.
 
 The code can generate single pulses and pulse trains with rather strict timing, periodic pulses with less strict timing (see below).
 Test pulse pattern with 1, 2, 5, 10 µs (or alternatively 1, 2, 4 µs) pulse width, periodically on pin D2, D3, D4, D5.
@@ -20,6 +20,16 @@ There will be some inherent communication latency until the command gets actuall
 
 ## Syntax
 
+### single
+`single <pinID> <pulselen>`
+
+Generates a single pulse on the specified pin.
+
+- `pinID`: Pin number to output pulses.
+- `pulselen`: Length of each pulse in microseconds.
+
+Example: Using pin D2, generate a single pulse of 7 microseconds: `single 2 7`
+
 ### pulse
 `pulse <pinID> <pulseN> <pulselen> <pulsegap>`
 
@@ -30,20 +40,22 @@ Generates a specified number of pulses on a pin.
 - `pulselen`: Length of each pulse in microseconds.
 - `pulsegap`: Gap between consecutive pulses in microseconds.
 
-Example: Using pin3, generate 5 pulses of 10 microseconds each with a gap of 50 microseconds:
-`pulse 3 5 10 50`
+Example: Using pin D3, generate 5 pulses of 10 microseconds each with a gap of 50 microseconds:
+
+	`pulse 3 5 10 50`
 
 
 ### periodic
 `periodic <pinID> <pulselen> <pulsegap>`
 
-Generates pulses at regular intervals on a pin.
+Generates pulses at regular intervals on a pin. Here, the periodicity will not be strict, the main program loop will produce a single pulse in each iteration.
+In addition to `pulsegap` wait time, overhead of loop execution (listening for new commands, e.g. `stop`) will cause varying delay.
 
 - `pinID`: Pin number to output pulses.
 - `pulselen`: Length of the pulse in microseconds.
 - `pulsegap`: Interval between pulses in microseconds.
 
-Example: Using pin4, to start periodic pulses of 10 microseconds with a gap of 500 microseconds:
+Example: Using pin D4, to start periodic pulses of 10 microseconds with a gap of 500 microseconds:
 
   `periodic 4 10 500` - to stop pulsing send `stop`
 
@@ -59,19 +71,20 @@ Generates a double pulse sequence using two different pins. Can be used to trigg
 - `pinID2`: Second pin number for pulse output.
 - `pulselen2`: Length of the pulse on the second pin in microseconds.
 
-Example: To generate a double pulse sequence on pins 2 and 5 with respective pulse lengths of 10 and 20 microseconds and a gap of 100 microseconds:
+Example: To generate a double pulse sequence on pins D2 and D5 with respective pulse lengths of 10 and 20 microseconds and a gap of 100 microseconds:
 
   `doublepulse 2 10 100 5 20`
 
 ### test
-`test` : Generates a sequence of test pulses of varying lengths (1, 2, 5, 10 µs) on all configured pins.
+`test` : Generates a sequence of test pulses of varying lengths (1, 2, 5, 10 µs) on all configured pins (default: D2, D3, D4, D5), with approx 1 ms in between.
 
-`test2` : Generates a sequence of test pulses of varying lengths (1, 2, 4 µs) on all configured pins.
+`test2` : Generates a sequence of test pulses of varying lengths (1, 2, 4 µs) on all configured pins, with approx. 100 ms in between.
+
+As with for `periodic` mode, the periodicity will not be strict, the main program loop will produce a set of pulses in each iteration.
+In addition to the preset wait time, overhead of loop execution (listening for new commands, e.g. `stop`) will cause varying delay.
 
 ### stop
-`stop`
-
-Stops any ongoing pulse generation and waits for a new command.
+`stop` : Stops any ongoing pulse generation and waits for a new command.
 
 ### setpin
 `setpin <pinID> <pinsate>` : Set pin to LOW (pinstate = 0) or HIGH (pinstate = 1)
@@ -79,10 +92,10 @@ Stops any ongoing pulse generation and waits for a new command.
 Example: Set pin D9 to HIGH: `setpin 9 1`
 
 
-
 ### help
-`help`: Output a few commands as serial response
-`version` or `*IDN?`: respond with `micropulser v0.2`
+`help` : Output a few commands as serial response
+
+`version` or `*IDN?` : respond with `micropulser v0.2dev`
 
 
 ## Testing

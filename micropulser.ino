@@ -126,9 +126,14 @@ void loop() {
       generatePulses(pinID, pulseN, pulselen, pulsegap);
       Serial.println("OK - Pulse(s) done!");
       runmode = ""; // reset run mode
+    } else if (runmode == "single") {
+      generateSinglePulse(pinID, pulselen);
+      Serial.println("OK - Single pulse done!");
+      runmode = ""; // reset run mode
     } else if (runmode == "periodic") {
       generateSinglePulse(pinID, pulselen);
       delayMicroseconds(pulsegap); // spacing between pulses
+      // keep runmode = "periodic", i.e. one pulse per iteration of main loop
     } else if (runmode == "doublepulse") {
       doublePulse(pinID, pulselen, pulsegap, pinID2, pulselen2);
       Serial.println("OK - Double pulse done!");
@@ -141,6 +146,27 @@ void loop() {
     stringComplete = false; // ready to receive new data
   }
 }
+
+
+void generatePulses(int pin, int numPulses, int pulseLength, int gap) {
+  cli(); // disable interrupts
+  for (int i = 0; i < numPulses; i++) {
+    PIND = (1 << pin);
+    delayMicroseconds(pulseLength + delta_t);
+    PIND = (1 << pin);
+    delayMicroseconds(gap); // spacing between pulses
+  }
+  sei(); // enable interrupts
+}
+
+void generateSinglePulse(int pin, int pulseLength) {
+  cli(); // disable interrupts
+  PIND = (1 << pin);
+  delayMicroseconds(pulseLength + delta_t);
+  PIND = (1 << pin);
+  sei(); // enable interrupts
+}
+
 
 /**
  * @brief Generates a sequence of two pulses on different pins with a gap in between.
@@ -164,24 +190,7 @@ void doublePulse(int pin1, int len1, int gap, int pin2, int len2) {
   sei(); // enable interrupts
 }
 
-void generatePulses(int pin, int numPulses, int pulseLength, int gap) {
-  cli(); // disable interrupts
-  for (int i = 0; i < numPulses; i++) {
-    PIND = (1 << pin);
-    delayMicroseconds(pulseLength + delta_t);
-    PIND = (1 << pin);
-    delayMicroseconds(gap); // spacing between pulses
-  }
-  sei(); // enable interrupts
-}
 
-void generateSinglePulse(int pin, int pulseLength) {
-  cli(); // disable interrupts
-  PIND = (1 << pin);
-  delayMicroseconds(pulseLength + delta_t);
-  PIND = (1 << pin);
-  sei(); // enable interrupts
-}
 
 void generateTestPulses() {
   cli(); // disable interrupts
@@ -208,7 +217,7 @@ void generateTestPulses2() {
     }
   }
   sei(); // enable interrupts
-  delay(100); // 100 ms delay
+  delay(100); // 100 ms delay between pulse sequences
 }
 
 /**
@@ -231,6 +240,8 @@ void setPin(int pinID, int pinState) {
 void parseCommand(String command) {
   if (command.startsWith("pulse ")) {
     parsePulseCommand(command);
+  if (command.startsWith("single ")) {
+    parseSingleCommand(command);
   } else if (command.startsWith("periodic ")) {
     parsePeriodicCommand(command);
   } else if (command.startsWith("doublepulse")) {
@@ -268,6 +279,19 @@ void parsePulseCommand(String command) {
     runmode = "pulse";
   }
 }
+
+void parseSingleCommand(String command) {
+  long params[4];
+  if(parseParameters(command, "single", params, 2)){
+    pinID = params[0];
+    pulselen = params[2];
+    sprintf(mesg, "OK - Single Pulse mode: pinID: %d, pulse length: %d µs", pinID, pulselen);
+    Serial.println(mesg);
+    runmode = "single";
+  }
+}
+
+
 
 void parsePeriodicCommand(String command) {
   long params[3];
