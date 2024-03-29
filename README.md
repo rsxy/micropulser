@@ -81,7 +81,9 @@ Example: Set pin D9 to HIGH: `setpin 9 1`
 
 
 ### help
-`help`
+`help`: Output a few commands as serial response
+`version` or `*IDN?`: respond with `micropulser v0.2`
+
 
 ## Testing
 Compile and upload to Arduino board. Open "Tools -> Serial Monitor" and enter commands, e.g. `help` or `test`.

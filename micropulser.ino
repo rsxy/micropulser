@@ -39,6 +39,9 @@
 
 
 // Constants
+
+// Global variable for identification string
+const char* softwareVersion = "micropulser v0.2";
 const int delta_t = 0;  // Calibration delay in microseconds
 const int testpulses[] = {1, 2, 5, 10};  // Test pulse durations in microseconds
 const int testpulses2[] = {1, 2, 4};
@@ -243,6 +246,8 @@ void parseCommand(String command) {
   } else if (command.startsWith("help")) {
     Serial.println(helpstr);
     runmode = "";
+  } else if (command.equalsIgnoreCase("version") || command.equalsIgnoreCase("*IDN?")) {
+    Serial.println(softwareVersion);
   } else if (command.startsWith("stop")) {
     Serial.println("OK - Stop mode, waiting for new command..");
     runmode = "";
