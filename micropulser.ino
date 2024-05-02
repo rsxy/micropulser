@@ -40,14 +40,18 @@
  * micropulser - A simple µs pulse generator for Arduino (tested on nano)
  * 
  * Can generate single pulses with microsecond duration on multiple pins,
+ * double pulses with varying duration and gap
+ * permanently set pin state to HIGH (1) or LOW (0)
  * periodic pulses of defined length and less strict periodicity
  * set of test pulses of different lengths
  * 
  * Serial commands:
  * pulse <int pinID>  <int pulseN> <int length> <int gap>
+ * double <int pinID> <int pulselen> <int pulsegap> <int pinID2> <int pulselen2>\n"
+ * setpin <int pinID> <int pinstate = 0 or 1>\n"
  * periodic <int pinID> <int length> <int gap>
  * stop 
- * test    // using pin 2, 3, 4, 5
+ * test    // using pin 2, 3, 4, 5 for 1, 2, 5 µs pulses
  * 
  */
 
@@ -294,6 +298,67 @@ void serialEvent() {
             Serial.println("OK - Stop mode, waiting for new command..");     
             runmode = "";  // empty string, so no specific mode will be entered
         }
+        else if (inputString.startsWith("singlefix1usD2")){ 
+            // hard-coded pinID and duration, fastest exectution possible 
+            Serial.println("OK - singlefix1usD2");     
+            cli(); // disable interrupts
+            PIND = (1 << 2);
+            delayMicroseconds(1);
+            PIND = (1 << 2);
+            sei(); // enable interrupts
+            runmode = "";  // empty string, so no specific mode will be entered
+        }
+        else if (inputString.startsWith("singlefix2usD2")){ 
+            // hard-coded pinID and duration, fastest exectution possible 
+            Serial.println("OK - singlefix2usD2");     
+            cli(); // disable interrupts
+            PIND = (1 << 2);
+            delayMicroseconds(2);
+            PIND = (1 << 2);
+            sei(); // enable interrupts
+            runmode = "";  // empty string, so no specific mode will be entered
+        }
+        else if (inputString.startsWith("singlefix3usD2")){ 
+            // hard-coded pinID and duration, fastest exectution possible 
+            Serial.println("OK - singlefix3usD2");     
+            cli(); // disable interrupts
+            PIND = (1 << 2);
+            delayMicroseconds(3);
+            PIND = (1 << 2);
+            sei(); // enable interrupts
+            runmode = "";  // empty string, so no specific mode will be entered
+        }
+        else if (inputString.startsWith("singlefix4usD2")){ 
+            // hard-coded pinID and duration, fastest exectution possible 
+            Serial.println("OK - singlefix4usD2");     
+            cli(); // disable interrupts
+            PIND = (1 << 2);
+            delayMicroseconds(4);
+            PIND = (1 << 2);
+            sei(); // enable interrupts
+            runmode = "";  // empty string, so no specific mode will be entered
+        }
+        else if (inputString.startsWith("singlefix5usD2")){ 
+            // hard-coded pinID and duration, fastest exectution possible 
+            Serial.println("OK - singlefix5usD2");     
+            cli(); // disable interrupts
+            PIND = (1 << 2);
+            delayMicroseconds(5);
+            PIND = (1 << 2);
+            sei(); // enable interrupts
+            runmode = "";  // empty string, so no specific mode will be entered
+        }
+       else if (inputString.startsWith("singlefix6usD2")){ 
+            // hard-coded pinID and duration, fastest exectution possible 
+            Serial.println("OK - singlefix6usD2");     
+            cli(); // disable interrupts
+            PIND = (1 << 2);
+            delayMicroseconds(6);
+            PIND = (1 << 2);
+            sei(); // enable interrupts
+            runmode = "";  // empty string, so no specific mode will be entered
+        }
+
          
         else{
           Serial.println("Warning: Command could not be parsed! Try 'test' for 1, 2, 5 µs test pulse");
