@@ -67,7 +67,7 @@ const int testpulses [] = {1, 2, 5};   // µs for testpulses
 String inputString = "";  // a string to hold incoming data
 String runmode = "";      // a string set mode of operation
 
-char helpstr[] = "Arduino micropulser: Commands with integer values only, duration in µs:\n" 
+const char helpstr[] = "Arduino micropulser: Commands with integer values only, duration in µs:\n" 
 "    pulse <int pinID> <int pulseN> <int pulselen> <int pulsegap>\n"
 "    double <int pinID> <int pulselen> <int pulsegap> <int pinID2> <int pulselen2>\n"
 "    periodic <int pinID> <int pulselen> <int pulsegap>\n"
@@ -78,10 +78,9 @@ char helpstr[] = "Arduino micropulser: Commands with integer values only, durati
 // Global variable for identification string
 const char* softwareVersion = "micropulser v0.2.2";
 
-
 //char inputString[40];
 bool stringComplete = false;  // whether the string is complete
-char mesg[256];  // for using sprintf:  C string / char array
+char mesg[128];  // for using sprintf:  C string / char array
 
 int pinID = 0;      // pin ID for pulses
 int pulselen = 0;   // pulse length in µs
@@ -102,6 +101,7 @@ void setup() {
 
     Serial.begin(115200);
     inputString.reserve(64);   // 64 bytes should be sufficient!
+    inputString.reserve(32);   // 32 bytes should be sufficient!
 }
 
 void loop() {
@@ -274,12 +274,13 @@ void serialEvent() {
           pinstate = para[1];   // pulse length in µs
 
           if (pinstate == 0) {
-            digitalWrite(pinID, LOW);
-            } else if (pinstate == 1) {
+              digitalWrite(pinID, LOW);
+          } else if (pinstate == 1) {
               digitalWrite(pinID, HIGH);
-            } else {
+          } else {
               Serial.println("Error: pinState must be 0 (LOW) or 1 (HIGH).");
-            }
+          }
+          Serial.println("OK!");
         }
       
         else if (inputString.startsWith("test")){  
@@ -348,7 +349,7 @@ void serialEvent() {
             sei(); // enable interrupts
             runmode = "";  // empty string, so no specific mode will be entered
         }
-       else if (inputString.startsWith("singlefix6usD2")){ 
+        else if (inputString.startsWith("singlefix6usD2")){ 
             // hard-coded pinID and duration, fastest exectution possible 
             Serial.println("OK - singlefix6usD2");     
             cli(); // disable interrupts
@@ -361,9 +362,9 @@ void serialEvent() {
 
          
         else{
-          Serial.println("Warning: Command could not be parsed! Try 'test' for 1, 2, 5 µs test pulse");
-          // don't change run mode, just go on with whatever is was
-          // runmode = "";
+            Serial.println("Warning: Command could not be parsed! Try 'test' for 1, 2, 5 µs test pulse");
+            // don't change run mode, just go on with whatever is was
+            // runmode = "";
         }
             
         inputString = "";
