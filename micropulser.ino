@@ -12,7 +12,7 @@
  * 
  * @note Code refactored using ChatGPT 4.0
  * 
- * @version 0.2dev
+ * @version 0.3dev
  * 
  * Project URL: https://github.com/rsxy/micropulser
  *
@@ -41,7 +41,7 @@
 // Constants
 
 // Global variable for identification string
-const char* softwareVersion = "micropulser v0.2dev";
+const char* softwareVersion = "micropulser v0.3dev";
 const int delta_t = 0;  // Calibration delay in microseconds
 const int testpulses[] = {1, 2, 5, 10};  // Test pulse durations in microseconds
 const int testpulses2[] = {1, 2, 4};
@@ -79,8 +79,6 @@ char helpstr[] = "Arduino micropulser: Commands with integer values only, durati
 "    setpin <int pinID> <int pinstate>\n"
 "    test\n"
 "    stop\n";
-
-
 
 void serialEvent() {
   while (Serial.available()) {
@@ -167,6 +165,80 @@ void generateSinglePulse(int pin, int pulseLength) {
   sei(); // enable interrupts
 }
 
+// The default function generateSinglePulse takes two variable parameters for pin ID and pulse length.
+// Here, all parameters are hard-coded to test overhead by use of variables, i.e. deviation in pulse length.
+void singlefix1usD2() {
+  cli(); // disable interrupts
+  PIND = (1 << 2);
+  delayMicroseconds(1);
+  PIND = (1 << 2);
+  sei(); // enable interrupts
+}
+void singlefix2usD2() {
+  cli(); // disable interrupts
+  PIND = (1 << 2);
+  delayMicroseconds(2);
+  PIND = (1 << 2);
+  sei(); // enable interrupts
+}
+void singlefix3usD2() {
+  cli(); // disable interrupts
+  PIND = (1 << 2);
+  delayMicroseconds(3);
+  PIND = (1 << 2);
+  sei(); // enable interrupts
+}
+void singlefix4usD2() {
+  cli(); // disable interrupts
+  PIND = (1 << 2);
+  delayMicroseconds(4);
+  PIND = (1 << 2);
+  sei(); // enable interrupts
+}
+void singlefix5usD2() {
+  cli(); // disable interrupts
+  PIND = (1 << 2);
+  delayMicroseconds(5);
+  PIND = (1 << 2);
+  sei(); // enable interrupts
+}
+
+// Here, pulse length is hard-coded but pin ID variable
+void singlefix1us(int pin) {
+  cli(); // disable interrupts
+  PIND = (1 << pin);
+  delayMicroseconds(1);
+  PIND = (1 << pin);
+  sei(); // enable interrupts
+}
+void singlefix2us(int pin) {
+  cli(); // disable interrupts
+  PIND = (1 << pin);
+  delayMicroseconds(2);
+  PIND = (1 << pin);
+  sei(); // enable interrupts
+}
+void singlefix3us(int pin) {
+  cli(); // disable interrupts
+  PIND = (1 << pin);
+  delayMicroseconds(3);
+  PIND = (1 << pin);
+  sei(); // enable interrupts
+}
+void singlefix4us(int pin) {
+  cli(); // disable interrupts
+  PIND = (1 << pin);
+  delayMicroseconds(4);
+  PIND = (1 << pin);
+  sei(); // enable interrupts
+}
+void singlefix5us(int pin) {
+  cli(); // disable interrupts
+  PIND = (1 << pin);
+  delayMicroseconds(5);
+  PIND = (1 << pin);
+  sei(); // enable interrupts
+}
 
 /**
  * @brief Generates a sequence of two pulses on different pins with a gap in between.
@@ -242,9 +314,11 @@ void parseCommand(String command) {
     parsePulseCommand(command);
   } else if (command.startsWith("single ")) {
     parseSingleCommand(command);
+  } else if (command.startsWith("singlefix ")) {
+    parseSingleFixCommand(command);
   } else if (command.startsWith("periodic ")) {
     parsePeriodicCommand(command);
-  } else if (command.startsWith("doublepulse")) {
+  } else if (command.startsWith("doublepulse ")) {
     parseDoublePulseCommand(command);
   } else if (command.startsWith("setpin ")) {
     parseSetPinCommand(command);
@@ -264,13 +338,15 @@ void parseCommand(String command) {
     Serial.println("OK - Stop mode, waiting for new command..");
     runmode = "";
   } else {
-    Serial.println("Warning: Command could not be parsed! Try 'test' for 1, 2, 5, 10 µs test pulses");
+    sprintf(mesg, "Warning: Command could not be parsed! %s\nTry 'test' for 1, 2, 5, 10 µs test pulses", command);
+    Serial.println(mesg);
   }
 }
 
 void parsePulseCommand(String command) {
+  // pulse command requires four parameters, pinID, pulseN, pulselength and pulsegap (using global variables)
   long params[4];
-  if(parseParameters(command, "pulse", params, 4)){
+  if (parseParameters(command, command.indexOf(' ') + 1, params, 4)) {
     pinID = params[0];
     pulseN = params[1];
     pulselen = params[2];
@@ -282,8 +358,9 @@ void parsePulseCommand(String command) {
 }
 
 void parseSingleCommand(String command) {
-  long params[4];
-  if(parseParameters(command, "single", params, 2)){
+  // single command requires two parameters, pinID and pulselength (using global variables)
+  long params[2];
+  if (parseParameters(command, command.indexOf(' ') + 1, params, 2)) {
     pinID = params[0];
     pulselen = params[1];
     sprintf(mesg, "OK - Single Pulse mode: pinID: %d, pulse length: %d µs", pinID, pulselen);
@@ -293,10 +370,46 @@ void parseSingleCommand(String command) {
 }
 
 
+/**
+ * @brief Generate a short pulse of predefined width, i.e. without using a variable for pulse length.
+ *        In case of pin D2, also the pinID is hardcoded. 
+ *
+ * @param pinID The pin number to be set.
+ * @param pulselen The pulse length in microseconds.
+ */
+void parseSingleFixCommand(String command) {
+  // singlefix command requires two parameters, pinID and pulselength
+  // here, we execute individual functions with hard-coded pulse length and/or pinID,
+  // to reduce potential overhead by variable access. Compare pulses on oscilloscope!
+  long params[2];
+  if (parseParameters(command, command.indexOf(' ') + 1, params, 2)) {
+    pinID = params[0];
+    pulselen = params[1];
+    if(pinID == 2){       // here, set pin to D2 and use fixed pulse length
+      if(pulselen == 1) singlefix1usD2();  // execute immediately, without using runmode
+      if(pulselen == 2) singlefix2usD2();
+      if(pulselen == 3) singlefix3usD2();
+      if(pulselen == 4) singlefix4usD2();
+      if(pulselen == 5) singlefix5usD2();      
+    }
+    else{               // here, use variable pin ID but fixed pulse length
+      if(pulselen == 1) singlefix1us(pinID);  // execute immediately, without using runmode
+      if(pulselen == 2) singlefix2us(pinID);
+      if(pulselen == 3) singlefix3us(pinID);
+      if(pulselen == 4) singlefix4us(pinID);
+      if(pulselen == 5) singlefix5us(pinID);
+    }
+    sprintf(mesg, "OK - Single Fixed Pulse mode: pinID: %d, pulse length: %d µs", pinID, pulselen);
+    Serial.println(mesg);
+    runmode = ""; // reset run mode
+  }
+}
+
 
 void parsePeriodicCommand(String command) {
+   // periodic command requires three parameters: pinID, pulselen, and pulsegap
   long params[3];
-  if(parseParameters(command, "periodic", params, 3)){
+  if (parseParameters(command, command.indexOf(' ') + 1, params, 3)) {
     pinID = params[0];
     pulselen = params[1];
     pulsegap = params[2];
@@ -307,14 +420,15 @@ void parsePeriodicCommand(String command) {
 }
 
 void parseDoublePulseCommand(String command) {
+   // doublepulse command requires five parameters: pinID, pulselen, pulsegap, pinID2, pulselen2
   long params[5];
-  if(parseParameters(command, "doublepulse", params, 5)){
-    int pin1 = params[0];
-    int len1 = params[1];
-    int gap = params[2];
-    int pin2 = params[3];
-    int len2 = params[4];
-    sprintf(mesg, "OK - Double pulse mode: pin1: %d, len1: %d µs, gap: %d µs, pin2: %d, len2: %d µs", pin1, len1, gap, pin2, len2);
+  if (parseParameters(command, command.indexOf(' ') + 1, params, 5)) {
+    pinID = params[0];
+    pulselen = params[1];
+    pulsegap = params[2];
+    pinID2 = params[3];
+    pulselen2 = params[4];
+    sprintf(mesg, "OK - Double pulse mode: pin1: %d, len1: %d µs, gap: %d µs, pin2: %d, len2: %d µs", pinID, pulselen, pulsegap, pinID2, pulselen2);
     Serial.println(mesg);
     runmode = "doublepulse";
   }
@@ -326,17 +440,17 @@ void parseDoublePulseCommand(String command) {
  * @param command The command string containing the parameters for setting a pin.
  */
 void parseSetPinCommand(String command) {
-  long params[2]; // Expecting two parameters: pinID and pinState
-  if (parseParameters(command, "setpin", params, 2)) {
-    int pinID = params[0];
-    int pinState = params[1];
-    setPin(pinID, pinState);
-    sprintf(mesg, "OK - Pin %d set to %d", pinID, pinState);
+  long params[2]; // Expecting two parameters: pinID and pinstate
+  if (parseParameters(command, command.indexOf(' ') + 1, params, 2)) {
+    pinID = params[0];
+    pinstate = params[1];
+    setPin(pinID, pinstate);
+    sprintf(mesg, "OK - Pin %d set to %d", pinID, pinstate);
     Serial.println(mesg);
   }
 }
 
-
+/*
 bool parseParameters(String command, const char* mode, long* params, int numParams) {
   int spaceIndex = -1;
   for(int i = 0; i < numParams; i++) {
@@ -345,9 +459,34 @@ bool parseParameters(String command, const char* mode, long* params, int numPara
       Serial.print(F("Error: Command format is '"));
       Serial.print(mode);
       Serial.println(" <parameters>' with the correct number of parameters.");
+      sprintf(mesg, "Command was:", command);
+      Serial.println(mesg);
       return false;
     }
     params[i] = command.substring(spaceIndex+1).toInt();
+  }
+  return true;
+}
+*/  
+
+
+
+//  NEw
+
+bool parseParameters(String command, int commandLength, long* params, int numParams) {
+  int prevSpaceIndex = commandLength - 1; // Start after the command
+  int spaceIndex = -1;
+  for (int i = 0; i < numParams; i++) {
+    spaceIndex = command.indexOf(' ', prevSpaceIndex + 1); // Find the next space index
+    if (spaceIndex == -1 && i < numParams - 1) { // No more spaces found before all parameters are parsed
+      Serial.println(F("Error: Incorrect number of parameters."));
+      sprintf(mesg, "Command was: %s", command.c_str());
+      Serial.println(mesg);
+      return false;
+    }
+    int paramLength = (i == numParams - 1) ? command.length() - (prevSpaceIndex + 1) : spaceIndex - (prevSpaceIndex + 1);
+    params[i] = command.substring(prevSpaceIndex + 1, prevSpaceIndex + 1 + paramLength).toInt();
+    prevSpaceIndex = spaceIndex;
   }
   return true;
 }
