@@ -11,7 +11,7 @@
  * 
  * @note Modify the 'delta_t' constant for timing calibration if necessary.
  *  * 
- * @version 0.2.1
+ * @version 0.2.2
  * 
  * Project URL: https://github.com/rsxy/micropulser
  *
@@ -65,12 +65,14 @@ String runmode = "";      // a string set mode of operation
 
 char helpstr[] = "Arduino micropulser: Commands with integer values only, duration in µs:\n" 
 "    pulse <int pinID> <int pulseN> <int pulselen> <int pulsegap>\n"
+"    double <int pinID> <int pulselen> <int pulsegap> <int pinID2> <int pulselen2>\n"
 "    periodic <int pinID> <int pulselen> <int pulsegap>\n"
+"    setpin <int pinID> <int pinstate = 0 or 1>\n"
 "    test\n"
 "    stop\n";
 
 // Global variable for identification string
-const char* softwareVersion = "micropulser v0.2.1";
+const char* softwareVersion = "micropulser v0.2.2";
 
 
 //char inputString[40];
@@ -96,14 +98,10 @@ void setup() {
 
     Serial.begin(115200);
     inputString.reserve(64);   // 64 bytes should be sufficient!
-    //cmdstr.reserve(64);   // 64 bytes should be sufficient!
-    //cmdpara.reserve(64);   // 64 bytes should be sufficient!
-
 }
 
 void loop() {
-    if (runmode == "pulse"){    // parse parameters and reset input string
- 
+    if (runmode == "pulse"){    // parse parameters and reset input string 
         cli();    // disable interrupts
         for (int i=0; i<pulseN; i++){    // generate N individual pulses
             PIND=(1<<pinID);
@@ -112,24 +110,24 @@ void loop() {
             delayMicroseconds(pulsegap);   // spacing between pulses
         }  
         sei();    // enable interrups
-        Serial.println("OK - Pulse(s) done!");     
-        
+        Serial.println("OK - Pulse(s) done!");             
         // reset run mode to wait for new command!
-        runmode = "";
-        
+        runmode = "";       
     }   // end "pulse"
 
 
     else if (runmode == "double"){     // double pulses, parameters have been parsed already in SerialEvent
-          cli();    // disable interrupts
-          PIND=(1<<pinID);
-          delayMicroseconds(pulselen+delta_t);
-          PIND=(1<<pinID);
-          delayMicroseconds(pulsegap);   // spacing between pulses  
-          PIND=(1<<pinID2);
-          delayMicroseconds(pulselen2+delta_t);
-          PIND=(1<<pinID2);
-          sei();    // enable interrups
+        cli();    // disable interrupts
+        PIND=(1<<pinID);
+        delayMicroseconds(pulselen+delta_t);
+        PIND=(1<<pinID);
+        delayMicroseconds(pulsegap);   // spacing between pulses  
+        PIND=(1<<pinID2);
+        delayMicroseconds(pulselen2+delta_t);
+        PIND=(1<<pinID2);
+        sei();    // enable interrups
+        // reset run mode to wait for new command!
+        runmode = "";
     }   // end "double"
   
     else if (runmode == "periodic"){     // periodic pulses until new command
@@ -158,11 +156,7 @@ void loop() {
         }
         sei();    // enable interrups
         delay(1000);   // 1000 ms, resulting in approx 1 Hz
-    }   // end "test "
-
-
-    // else pass;
-
+    }   // end "test"
 
 }   // end main loop     
   
@@ -179,7 +173,9 @@ void loop() {
 
   rsxy: borrowed from some example (serial string parsing?), 
         extended for immediate parsing and setting run mode.
+        One-off commands could be immediately executed, though.
 */
+
 void serialEvent() {
   while (Serial.available()) {
     // get the new byte:
@@ -211,7 +207,6 @@ void serialEvent() {
           Serial.println(mesg);
           runmode = "pulse";
       }
-
 
       else if (inputString.startsWith("double ")){  
           // parse parameters here, just use in upper loop!
@@ -276,39 +271,39 @@ void serialEvent() {
 
           if (pinstate == 0) {
             digitalWrite(pinID, LOW);
-          } else if (pinstate == 1) {
-            digitalWrite(pinID, HIGH);
-          } else {
-            Serial.println("Error: pinState must be 0 (LOW) or 1 (HIGH).");
-          }
-      }
+            } else if (pinstate == 1) {
+              digitalWrite(pinID, HIGH);
+            } else {
+              Serial.println("Error: pinState must be 0 (LOW) or 1 (HIGH).");
+            }
+        }
       
-      else if (inputString.startsWith("test")){  
-          Serial.println("OK - Test mode, sending pulses of varying length!");     
-          runmode = "test";
-      }
-      
-      else if (inputString.startsWith("help")){      
-          Serial.println(helpstr);     
-          runmode = "";  // empty string, so no specific mode will be entered
-      }
-      else if (inputString.startsWith("version") || inputString.startsWith("*IDN?")) {
-          Serial.println(softwareVersion);
-      }
-      else if (inputString.startsWith("stop")){  
-          Serial.println("OK - Stop mode, waiting for new command..");     
-          runmode = "";  // empty string, so no specific mode will be entered
-      }
+        else if (inputString.startsWith("test")){  
+            Serial.println("OK - Test mode, sending pulses of varying length!");     
+            runmode = "test";
+        }
+        
+        else if (inputString.startsWith("help")){      
+            Serial.println(helpstr);     
+            runmode = "";  // empty string, so no specific mode will be entered
+        }
+        else if (inputString.startsWith("version") || inputString.startsWith("*IDN?")) {
+            Serial.println(softwareVersion);
+        }
+        else if (inputString.startsWith("stop")){  
+            Serial.println("OK - Stop mode, waiting for new command..");     
+            runmode = "";  // empty string, so no specific mode will be entered
+        }
+         
+        else{
+          Serial.println("Warning: Command could not be parsed! Try 'test' for 1, 2, 5 µs test pulse");
+          // don't change run mode, just go on with whatever is was
+          // runmode = "";
+        }
+            
+        inputString = "";
        
-      else{
-        Serial.println("Warning: Command could not be parsed! Try 'test' for 1, 2, 5, 10 µs test pulse");
-        // don't change run mode, just go on with whatever is was
-        // runmode = "";
+        stringComplete = true;
       }
-          
-      inputString = "";
-     
-      stringComplete = true;
     }
-  }
 }
