@@ -3,10 +3,10 @@ Microsecond pulse generator for Arduino.
 
 Serial interface for generating short (µs) pulses on digital output pins.
 Can generate single pulses and pulse trains with rather strict timing, periodic pulses with less strict timing (see below).
-Test pulse pattern with 1, 2, 5, 10 µs pulse width, periodically on pin D2, D3, D4, D5.
+Test pulse pattern with 1, 2, 5 µs pulse width, periodically on pin D2, D3, D4, D5.
 
 ## Serial commands 
-Parameters are separated by single space, termination character is "\n", 115200 baud
+Parameters are separated by single space, termination character is "\n", 115200 baud.
 
 Syntax:
 
@@ -17,14 +17,20 @@ Syntax:
 * `<int pulselen>`: Length of pulse(s) in microseconds (µs)
 * `<int pulsegap>`: Gap between pulses, in microseconds (µs)
 
+`double <int pinID> <int pulselen> <int pulsegap> <int pinID2> <int pulselen2>`
+* generate two pulses on two individual pins, with defined duration and delay
+
 `periodic <int pinID> <int pulselen> <int pulsegap>`
 * generate single pulses in infinite loop; 
 * pause timing is not strict, arduino runtime loop overhead is added to pulsegap.
 
+`setpin <int pinID> <int pinstate = 0 or 1>`
+* set individual pins to LOW (0) or HIGH (1)
+
 `test`
-* send periodic pattern of test pulses, i.e. 1, 2, 5, 10 µs pulses with 10 µs gap, 
+* send periodic pattern of test pulses, i.e. 1, 2, 5 µs pulses with 10 µs gap, 
 * using pin D2, D3, D4, D5, 
-* then 1 ms wait time (+ overhead) until next iteration
+* then 1000 ms wait time (+ overhead) until next iteration
 
 `stop`
 * stop pulse generation, go to idle mode, waiting for new command
@@ -32,10 +38,13 @@ Syntax:
 `help`
 * output help string
 
+`version` or `*IDN?`
+* output version string
+
+
 ## Testing
 Compile and upload to Arduino board. Open "Tools -> Serial Monitor" and enter commands, e.g. `test`.
 Connect pin(s) to oscilloscope and watch the pulses!
-
 
 Tested so far with an Arduino nano clone and pin 2 - 5, serial connection to Raspberry Pi.
 
@@ -64,6 +73,7 @@ Three test pulses of 1 µs nominal width and 1 µs gap, resulting in 2.16 µs ac
 This is my first public project for quite some time, please feel free to contribute or drop me a note! :-)
 
 ## To do
-* more testing, oscilloscope pictures
-* better documentation
-* code refining
+* more oscilloscope pictures
+* compare fixed functions to using variables
+* configurable delta parameter
+

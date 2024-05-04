@@ -10,7 +10,7 @@
  * @date 2024-05-02
  * 
  * @note Modify the 'delta_t' constant for timing calibration if necessary.
- *  * 
+ *  
  * @version 0.2.2
  * 
  * Project URL: https://github.com/rsxy/micropulser
@@ -79,15 +79,15 @@ const char helpstr[] = "Arduino micropulser: Commands with integer values only, 
 const char* softwareVersion = "micropulser v0.2.2";
 
 //char inputString[40];
-bool stringComplete = false;  // whether the string is complete
+bool stringComplete = false;  // whether the input string is complete, after receiving \n
 char mesg[128];  // for using sprintf:  C string / char array
 
 int pinID = 0;      // pin ID for pulses
 int pulselen = 0;   // pulse length in µs
 int pulseN = 0;     // number of pulses
 int pulsegap = 0;   // gap between pulses, in µs
-int pinID2 = 0;      // pin ID2 for double pulses
-int pulselen2 = 0;   // pulse length2 in µs
+int pinID2 = 0;     // pin ID2 for double pulses
+int pulselen2 = 0;  // pulse length2 in µs
 int pinstate = 0;   // pinstate for setpin 
 
 
@@ -98,10 +98,8 @@ void setup() {
         digitalWrite(pinID, LOW);
     }
 
-
     Serial.begin(115200);
     inputString.reserve(64);   // 64 bytes should be sufficient!
-    inputString.reserve(32);   // 32 bytes should be sufficient!
 }
 
 void loop() {
@@ -299,6 +297,9 @@ void serialEvent() {
             Serial.println("OK - Stop mode, waiting for new command..");     
             runmode = "";  // empty string, so no specific mode will be entered
         }
+
+        
+        // now a few dedicated functions for testing, to eliminate any possible overhead
         else if (inputString.startsWith("singlefix1usD2")){ 
             // hard-coded pinID and duration, fastest exectution possible 
             Serial.println("OK - singlefix1usD2");     
@@ -359,7 +360,6 @@ void serialEvent() {
             sei(); // enable interrupts
             runmode = "";  // empty string, so no specific mode will be entered
         }
-
          
         else{
             Serial.println("Warning: Command could not be parsed! Try 'test' for 1, 2, 5 µs test pulse");
