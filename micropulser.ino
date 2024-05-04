@@ -282,7 +282,7 @@ void serialEvent() {
         }
       
         else if (inputString.startsWith("test")){  
-            Serial.println("OK - Test mode, sending pulses of varying length!");     
+            Serial.println("OK - Test mode, sending pulses of 1, 2, 5 us length!");     
             runmode = "test";
         }
         
