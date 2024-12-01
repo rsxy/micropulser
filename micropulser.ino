@@ -5,13 +5,14 @@
  * 
  * Generates precise microsecond pulses on digital output pins based on serial commands.
  * Supports single, periodic, test, and double pulse modes with user-defined parameters.
+ * Supports interrupts on pin D2 and D3 to trigger short pulses on D4 and D5.
  * 
  * @author rsxy
- * @date 2024-05-02
+ * @date 2024-11-25
  * 
  * @note Modify the 'delta_t' constant for timing calibration if necessary.
  *  
- * @version 0.2.2
+ * @version 0.3.0
  * 
  * Project URL: https://github.com/rsxy/micropulser
  *
@@ -62,6 +63,9 @@ const int delta_t = 0;   // extra delay in µs to get correct timing
                         // with delta_t = 1 µs, ~ 0.5 µs too long!
                         // for now, just set to 0
 
+const int inputPin1 = 2; // Interrupt input 1
+const int inputPin2 = 3; // Interrupt input 2
+
 const int testpulses [] = {1, 2, 5};   // µs for testpulses
 
 String inputString = "";  // a string to hold incoming data
@@ -76,24 +80,38 @@ const char helpstr[] = "Arduino micropulser: Commands with integer values only, 
 "    stop\n";
 
 // Global variable for identification string
-const char* softwareVersion = "micropulser v0.2.2";
+const char* softwareVersion = "micropulser v0.3.0";
 
 //char inputString[40];
 bool stringComplete = false;  // whether the input string is complete, after receiving \n
 char mesg[128];  // for using sprintf:  C string / char array
 
-int pinID = 0;      // pin ID for pulses
-int pulselen = 0;   // pulse length in µs
-int pulseN = 0;     // number of pulses
-int pulsegap = 0;   // gap between pulses, in µs
-int pinID2 = 0;     // pin ID2 for double pulses
-int pulselen2 = 0;  // pulse length2 in µs
-int pinstate = 0;   // pinstate for setpin 
+volatile unsigned int pinID = 0;      // pin ID for pulses
+volatile unsigned int pulselen = 0;   // pulse length in µs
+volatile unsigned int pulseN = 0;     // number of pulses
+volatile unsigned int pulsegap = 0;   // gap between pulses, in µs
+volatile unsigned int pinID2 = 0;     // pin ID2 for double pulses
+volatile unsigned int pulselen2 = 0;  // pulse length2 in µs
+volatile unsigned int pinstate = 0;   // pinstate for setpin 
+
+// Interrupt-triggered outputs: Keep separate from other (double) pulse config:
+volatile unsigned int outputPin1 = 4;   // pinID for interrupt input 1
+volatile unsigned int outputPin2 = 5;   // pinID for interrupt input 2
+volatile unsigned int outputLen1 = 3;   // pulse length in µs
+volatile unsigned int outputLen2 = 3;   // pulse length in µs
 
 
 void setup() {
-    // define pins D2 - D10, set low
-    for (pinID=2; pinID<=10; pinID++){
+    // Configure input pins
+    pinMode(inputPin1, INPUT);
+    pinMode(inputPin2, INPUT);
+
+    // Attach interrupts
+    attachInterrupt(digitalPinToInterrupt(inputPin1), handleInterrupt1, RISING);
+    attachInterrupt(digitalPinToInterrupt(inputPin2), handleInterrupt2, RISING);
+    
+    // Define output pins D4 - D10, set low
+    for (pinID=4; pinID<=10; pinID++){
         pinMode(pinID, OUTPUT);
         digitalWrite(pinID, LOW);
     }
@@ -101,6 +119,31 @@ void setup() {
     Serial.begin(115200);
     inputString.reserve(64);   // 64 bytes should be sufficient!
 }
+
+// Interrupt Service Routine for inputPin1
+// Generate single short pulse on outputPin1
+void handleInterrupt1() {
+    cli();    // disable interrupts
+    PIND=(1<<outputPin1);
+    delayMicroseconds(pulselen+delta_t);
+    PIND=(1<<outputPin1);
+    sei();    // enable interrupts
+}
+
+
+// Interrupt Service Routine for inputPin2
+// Generate single short pulse on outputPin2
+void handleInterrupt2() {
+    cli();    // disable interrupts
+    PIND=(1<<outputPin2);
+    delayMicroseconds(pulselen2+delta_t);
+    PIND=(1<<outputPin2);
+    sei();    // enable interrupts
+}
+
+
+
+
 
 void loop() {
     if (runmode == "pulse"){    // parse parameters and reset input string 
@@ -111,7 +154,7 @@ void loop() {
             PIND=(1<<pinID);
             delayMicroseconds(pulsegap);   // spacing between pulses
         }  
-        sei();    // enable interrups
+        sei();    // enable interrupts
         Serial.println("OK - Pulse(s) done!");             
         // reset run mode to wait for new command!
         runmode = "";       
@@ -127,7 +170,7 @@ void loop() {
         PIND=(1<<pinID2);
         delayMicroseconds(pulselen2+delta_t);
         PIND=(1<<pinID2);
-        sei();    // enable interrups
+        sei();    // enable interrupts
         // reset run mode to wait for new command!
         runmode = "";
     }   // end "double"
@@ -140,7 +183,7 @@ void loop() {
           PIND=(1<<pinID);
           delayMicroseconds(pulselen+delta_t);
           PIND=(1<<pinID);
-          sei();    // enable interrups
+          sei();    // enable interrupts
 
           delayMicroseconds(pulsegap);   // spacing between pulses    
     }   // end "periodic"
@@ -156,7 +199,7 @@ void loop() {
                 delayMicroseconds(10);   // spacing between pulses
             }
         }
-        sei();    // enable interrups
+        sei();    // enable interrupts
         delay(1000);   // 1000 ms, resulting in approx 1 Hz
     }   // end "test"
 
@@ -256,6 +299,32 @@ void serialEvent() {
           Serial.println(mesg);
           runmode = "periodic";
       }
+
+      else if (inputString.startsWith("setpara ")){  
+          // This could be a generic function for all kinds of parameters
+          // Now: set pulse length and outputID for interrupt input D2 and D3
+          int pin, ID, len;
+          sscanf(inputString.c_str(), "setpara %d %d %d", &pin, &ID, &len);
+          if (pin == inputPin1) {
+              outputPin1 = ID;
+              outputLen1 = len;
+              Serial.print("Pulse length for Pin ");
+              Serial.print(inputPin1);
+              Serial.print(" set to ");
+              Serial.println(outputLen1);
+          } else if (pin == inputPin2) {
+              outputPin2 = ID;
+              outputLen2 = len;
+              Serial.print("Pulse length for Pin ");
+              Serial.print(inputPin2);
+              Serial.print(" set to ");
+              Serial.println(outputLen2);
+          } else {
+              Serial.println("Invalid pin. Use 2 or 3.");
+          }
+   
+      } 
+      
       else if (inputString.startsWith("setpin ")){  
           // Set a single pin to 1 = HIGH or 0 = LOW, execute immediately
           int preceding_space = -1;
