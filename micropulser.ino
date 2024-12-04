@@ -128,6 +128,7 @@ void handleInterrupt1() {
     delayMicroseconds(pulselen+delta_t);
     PIND=(1<<outputPin1);
     sei();    // enable interrupts
+    Serial.println("OK - Interrupt D2, pulse done!");             
 }
 
 
@@ -139,6 +140,7 @@ void handleInterrupt2() {
     delayMicroseconds(pulselen2+delta_t);
     PIND=(1<<outputPin2);
     sei();    // enable interrupts
+    Serial.println("OK - Interrupt D3, pulse done!");             
 }
 
 
