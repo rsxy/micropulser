@@ -8,11 +8,11 @@
  * Supports interrupts on pin D2 and D3 to trigger short pulses on D4 and D5.
  * 
  * @author rsxy
- * @date 2024-11-25
+ * @date 2024-12-07
  * 
  * @note Modify the 'delta_t' constant for timing calibration if necessary.
  *  
- * @version 0.3.0
+ * @version 0.3.1
  * 
  * Project URL: https://github.com/rsxy/micropulser
  *
@@ -111,6 +111,7 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(inputPin2), handleInterrupt2, RISING);
     
     // Define output pins D4 - D10, set low
+    // Pins 3, 5, 6, 9, 10 can be used as analog out (PWM) using analogWrite(pin, value), value 0..255
     for (pinID=4; pinID<=10; pinID++){
         pinMode(pinID, OUTPUT);
         digitalWrite(pinID, LOW);
@@ -328,119 +329,147 @@ void serialEvent() {
       } 
       
       else if (inputString.startsWith("setpin ")){  
-          // Set a single pin to 1 = HIGH or 0 = LOW, execute immediately
-          int preceding_space = -1;
-          long para[2];  // array for four parameters
-          for(int i=0; i<2; i++) { //read four parameters
-            preceding_space = inputString.indexOf(' ',preceding_space+1);
-            if(preceding_space<0){
-              Serial.println(F("Error: Command is 'setpin <int pinID> <int pinstate>'"));
-              break;
-            }
-            para[i] = inputString.substring(preceding_space+1).toInt();
+        // Set a single pin to 1 = HIGH or 0 = LOW, execute immediately
+        int preceding_space = -1;
+        long para[2];  // array for four parameters
+        for(int i=0; i<2; i++) { //read two parameters
+          preceding_space = inputString.indexOf(' ',preceding_space+1);
+          if(preceding_space<0){
+            Serial.println(F("Error: Command is 'setpin <int pinID> <int pinstate>'"));
+            break;
           }
-          pinID = para[0];     // pin ID for pulses
-          pinstate = para[1];   // pulse length in µs
+          para[i] = inputString.substring(preceding_space+1).toInt();
+        }
+        pinID = para[0];     // pin ID for pulses
+        pinstate = para[1];   // pulse length in µs
 
-          if (pinstate == 0) {
-              digitalWrite(pinID, LOW);
-          } else if (pinstate == 1) {
-              digitalWrite(pinID, HIGH);
-          } else {
-              Serial.println("Error: pinState must be 0 (LOW) or 1 (HIGH).");
+        if (pinstate == 0) {
+            digitalWrite(pinID, LOW);
+        } else if (pinstate == 1) {
+            digitalWrite(pinID, HIGH);
+        } else {
+            Serial.println("Error: pinState must be 0 (LOW) or 1 (HIGH).");
+        }
+        sprintf(mesg, "OK - Set pin %d to digital value %d", pinID, pinstate);
+      }
+      
+      else if (inputString.startsWith("setpwm ")){  
+        // Set a single pin to 0..255
+        int preceding_space = -1;
+        long para[2];  // array for four parameters
+        for(int i=0; i<2; i++) { //read two parameters
+          preceding_space = inputString.indexOf(' ',preceding_space+1);
+          if(preceding_space<0){
+            Serial.println(F("Error: Command is 'setpwm <int pinID> <int value>'"));
+            break;
           }
-          Serial.println("OK!");
+          para[i] = inputString.substring(preceding_space+1).toInt();
+        }
+        pinID = para[0];     // pin ID for pulses
+        pinstate = para[1];   // PWM value, 0..255
+
+        // Check if the value is within the valid PWM range (0-255)
+        if (value < 0) {
+          value = 0; // If value is below 0, set it to 0
+        } else if (value > 255) {
+          value = 255; // If value is above 255, set it to 255
         }
       
-        else if (inputString.startsWith("test")){  
-            Serial.println("OK - Test mode, sending pulses of 1, 2, 5 us length!");     
-            runmode = "test";
+        // Set the PWM value on the specified pin
+        analogWrite(pin, value);
         }
-        
-        else if (inputString.startsWith("help")){      
-            Serial.println(helpstr);     
-            runmode = "";  // empty string, so no specific mode will be entered
-        }
-        else if (inputString.startsWith("version") || inputString.startsWith("*IDN?")) {
-            Serial.println(softwareVersion);
-        }
-        else if (inputString.startsWith("stop")){  
-            Serial.println("OK - Stop mode, waiting for new command..");     
-            runmode = "";  // empty string, so no specific mode will be entered
-        }
-
-        
-        // now a few dedicated functions for testing, to eliminate any possible overhead
-        else if (inputString.startsWith("singlefix1usD2")){ 
-            // hard-coded pinID and duration, fastest exectution possible 
-            Serial.println("OK - singlefix1usD2");     
-            cli(); // disable interrupts
-            PIND = (1 << 2);
-            delayMicroseconds(1);
-            PIND = (1 << 2);
-            sei(); // enable interrupts
-            runmode = "";  // empty string, so no specific mode will be entered
-        }
-        else if (inputString.startsWith("singlefix2usD2")){ 
-            // hard-coded pinID and duration, fastest exectution possible 
-            Serial.println("OK - singlefix2usD2");     
-            cli(); // disable interrupts
-            PIND = (1 << 2);
-            delayMicroseconds(2);
-            PIND = (1 << 2);
-            sei(); // enable interrupts
-            runmode = "";  // empty string, so no specific mode will be entered
-        }
-        else if (inputString.startsWith("singlefix3usD2")){ 
-            // hard-coded pinID and duration, fastest exectution possible 
-            Serial.println("OK - singlefix3usD2");     
-            cli(); // disable interrupts
-            PIND = (1 << 2);
-            delayMicroseconds(3);
-            PIND = (1 << 2);
-            sei(); // enable interrupts
-            runmode = "";  // empty string, so no specific mode will be entered
-        }
-        else if (inputString.startsWith("singlefix4usD2")){ 
-            // hard-coded pinID and duration, fastest exectution possible 
-            Serial.println("OK - singlefix4usD2");     
-            cli(); // disable interrupts
-            PIND = (1 << 2);
-            delayMicroseconds(4);
-            PIND = (1 << 2);
-            sei(); // enable interrupts
-            runmode = "";  // empty string, so no specific mode will be entered
-        }
-        else if (inputString.startsWith("singlefix5usD2")){ 
-            // hard-coded pinID and duration, fastest exectution possible 
-            Serial.println("OK - singlefix5usD2");     
-            cli(); // disable interrupts
-            PIND = (1 << 2);
-            delayMicroseconds(5);
-            PIND = (1 << 2);
-            sei(); // enable interrupts
-            runmode = "";  // empty string, so no specific mode will be entered
-        }
-        else if (inputString.startsWith("singlefix6usD2")){ 
-            // hard-coded pinID and duration, fastest exectution possible 
-            Serial.println("OK - singlefix6usD2");     
-            cli(); // disable interrupts
-            PIND = (1 << 2);
-            delayMicroseconds(6);
-            PIND = (1 << 2);
-            sei(); // enable interrupts
-            runmode = "";  // empty string, so no specific mode will be entered
-        }
-         
-        else{
-            Serial.println("Warning: Command could not be parsed! Try 'test' for 1, 2, 5 µs test pulse");
-            // don't change run mode, just go on with whatever is was
-            // runmode = "";
-        }
-            
-        inputString = "";
-       
-        stringComplete = true;
+        sprintf(mesg, "OK - Set pin %d to PWM value %d", pinID, pinstate);
       }
+      
+      else if (inputString.startsWith("test")){  
+          Serial.println("OK - Test mode, sending pulses of 1, 2, 5 us length!");     
+          runmode = "test";
+      }
+      
+      else if (inputString.startsWith("help")){      
+          Serial.println(helpstr);     
+          runmode = "";  // empty string, so no specific mode will be entered
+      }
+      else if (inputString.startsWith("version") || inputString.startsWith("*IDN?")) {
+          Serial.println(softwareVersion);
+      }
+      else if (inputString.startsWith("stop")){  
+          Serial.println("OK - Stop mode, waiting for new command..");     
+          runmode = "";  // empty string, so no specific mode will be entered
+      }
+
+      
+      // now a few dedicated functions for testing, to eliminate any possible overhead
+      else if (inputString.startsWith("singlefix1usD2")){ 
+          // hard-coded pinID and duration, fastest exectution possible 
+          Serial.println("OK - singlefix1usD2");     
+          cli(); // disable interrupts
+          PIND = (1 << 2);
+          delayMicroseconds(1);
+          PIND = (1 << 2);
+          sei(); // enable interrupts
+          runmode = "";  // empty string, so no specific mode will be entered
+      }
+      else if (inputString.startsWith("singlefix2usD2")){ 
+          // hard-coded pinID and duration, fastest exectution possible 
+          Serial.println("OK - singlefix2usD2");     
+          cli(); // disable interrupts
+          PIND = (1 << 2);
+          delayMicroseconds(2);
+          PIND = (1 << 2);
+          sei(); // enable interrupts
+          runmode = "";  // empty string, so no specific mode will be entered
+      }
+      else if (inputString.startsWith("singlefix3usD2")){ 
+          // hard-coded pinID and duration, fastest exectution possible 
+          Serial.println("OK - singlefix3usD2");     
+          cli(); // disable interrupts
+          PIND = (1 << 2);
+          delayMicroseconds(3);
+          PIND = (1 << 2);
+          sei(); // enable interrupts
+          runmode = "";  // empty string, so no specific mode will be entered
+      }
+      else if (inputString.startsWith("singlefix4usD2")){ 
+          // hard-coded pinID and duration, fastest exectution possible 
+          Serial.println("OK - singlefix4usD2");     
+          cli(); // disable interrupts
+          PIND = (1 << 2);
+          delayMicroseconds(4);
+          PIND = (1 << 2);
+          sei(); // enable interrupts
+          runmode = "";  // empty string, so no specific mode will be entered
+      }
+      else if (inputString.startsWith("singlefix5usD2")){ 
+          // hard-coded pinID and duration, fastest exectution possible 
+          Serial.println("OK - singlefix5usD2");     
+          cli(); // disable interrupts
+          PIND = (1 << 2);
+          delayMicroseconds(5);
+          PIND = (1 << 2);
+          sei(); // enable interrupts
+          runmode = "";  // empty string, so no specific mode will be entered
+      }
+      else if (inputString.startsWith("singlefix6usD2")){ 
+          // hard-coded pinID and duration, fastest exectution possible 
+          Serial.println("OK - singlefix6usD2");     
+          cli(); // disable interrupts
+          PIND = (1 << 2);
+          delayMicroseconds(6);
+          PIND = (1 << 2);
+          sei(); // enable interrupts
+          runmode = "";  // empty string, so no specific mode will be entered
+      }
+       
+      else{
+          Serial.println("Warning: Command could not be parsed! Try 'test' for 1, 2, 5 µs test pulse");
+          // don't change run mode, just go on with whatever is was
+          // runmode = "";
+      }
+          
+      inputString = "";
+     
+      stringComplete = true;
     }
+  }
 }
