@@ -369,15 +369,14 @@ void serialEvent() {
         pinstate = para[1];   // PWM value, 0..255
 
         // Check if the value is within the valid PWM range (0-255)
-        if (value < 0) {
-          value = 0; // If value is below 0, set it to 0
-        } else if (value > 255) {
-          value = 255; // If value is above 255, set it to 255
+        if (pinstate < 0) {
+          pinstate = 0; // If value is below 0, set it to 0
+        } else if (pinstate > 255) {
+          pinstate = 255; // If value is above 255, set it to 255
         }
       
         // Set the PWM value on the specified pin
-        analogWrite(pin, value);
-        }
+        analogWrite(pinID, pinstate);
         sprintf(mesg, "OK - Set pin %d to PWM value %d", pinID, pinstate);
       }
       
